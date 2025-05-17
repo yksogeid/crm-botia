@@ -13,7 +13,6 @@ class ListN8nMessages extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
         ];
     }
 }

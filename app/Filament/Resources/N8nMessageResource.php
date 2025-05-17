@@ -39,51 +39,62 @@ class N8nMessageResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('id')
-                    ->sortable()
-                    ->searchable(),
-                TextColumn::make('session_id')
-                    ->sortable()
-                    ->searchable(),
                 TextColumn::make('message.type')
-                    ->label('Type')
+                    ->label('Tipo')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'human' => 'info',
+                        'ai' => 'success',
+                        default => 'gray',
+                    }),
+                TextColumn::make('create_at')
+                    ->label('Fecha y Hora')
+                    ->dateTime('d/m/Y H:i:s')
+                    ->sortable()
+                    ->searchable(),
                 TextColumn::make('message.content')
-                    ->label('Content')
+                    ->label('Contenido')
                     ->html()
                     ->wrap()
                     ->searchable()
                     ->formatStateUsing(fn ($state) => nl2br(htmlspecialchars($state)))
-                    ->limit(200),
+                    ->limit(200)
+                    ->grow(),
+                TextColumn::make('session_id')
+                    ->label('Sesión')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('message.tool_calls')
-                    ->label('Tool Calls')
-                    ->toggleable()
+                    ->label('Llamadas a Herramientas')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->formatStateUsing(fn ($state) => $state ? json_encode($state, JSON_PRETTY_PRINT) : ''),
                 TextColumn::make('message.additional_kwargs')
-                    ->label('Additional Args')
+                    ->label('Args Adicionales')
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->formatStateUsing(fn ($state) => $state ? json_encode($state, JSON_PRETTY_PRINT) : ''),
                 TextColumn::make('message.response_metadata')
-                    ->label('Response Metadata')
+                    ->label('Metadata de Respuesta')
                     ->toggleable(isToggledHiddenByDefault: true)
-                    ->formatStateUsing(fn ($state) => $state ? json_encode($state, JSON_PRETTY_PRINT) : ''),
-                TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(),
+                    ->formatStateUsing(fn ($state) => $state ? json_encode($state, JSON_PRETTY_PRINT) : '')
             ])
+            ->defaultSort('create_at', 'desc')
+            ->groups([
+                Tables\Grouping\Group::make('session_id')
+                    ->label('Sesión')
+                    ->collapsible(true, true), // El segundo parámetro indica que está colapsado por defecto
+
+            ])
+            ->defaultGroup('session_id')
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+               
             ])
             ->poll('5s');
     }
@@ -99,7 +110,6 @@ class N8nMessageResource extends Resource
     {
         return [
             'index' => Pages\ListN8nMessages::route('/'),
-            'create' => Pages\CreateN8nMessage::route('/create'),
             'edit' => Pages\EditN8nMessage::route('/{record}/edit'),
         ];
     }

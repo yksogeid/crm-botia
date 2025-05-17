@@ -15,5 +15,8 @@ class N8nMessage extends Model
     protected $fillable = [
         'session_id',
         'message',
+        'created_at',
     ];
+
+    public $timestamps = true;
 }
