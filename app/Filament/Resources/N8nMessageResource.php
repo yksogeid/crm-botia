@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\N8nMessageResource\Pages;
-use App\Filament\Resources\N8nMessageResource\RelationManagers;
 use App\Models\N8nMessage;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -12,25 +11,31 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Textarea;  // Add this import at the top
 
 class N8nMessageResource extends Resource
 {
     protected static ?string $model = N8nMessage::class;
-
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-    
-    protected static ?string $navigationLabel = 'N8N Messages';
+    protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-right';
+    protected static ?string $navigationLabel = 'Historial de Conversaciones';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                TextInput::make('session_id')
-                    ->required()
-                    ->numeric(),
-                TextInput::make('message')
+                TextInput::make('answerUser')
+                    ->label('Mensaje Usuario')
+                    ->required(),
+                TextInput::make('responseAI')
+                    ->label('Respuesta AI')
+                    ->required(),
+                DateTimePicker::make('fechaAnswerUser')
+                    ->label('Fecha Mensaje Usuario'),
+                DateTimePicker::make('fechaResponseAI')
+                    ->label('Fecha Respuesta AI'),
+                TextInput::make('numero')
+                    ->label('Número')
                     ->required(),
             ]);
     }
@@ -39,78 +44,76 @@ class N8nMessageResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('message.type')
-                    ->label('Tipo')
+                TextColumn::make('numero')
+                    ->label('Número')
                     ->searchable()
                     ->sortable()
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'human' => 'info',
-                        'ai' => 'success',
-                        default => 'gray',
-                    }),
-                TextColumn::make('create_at')
-                    ->label('Fecha y Hora')
+                    ->toggleable(),
+                TextColumn::make('answerUser')
+                    ->label('Mensaje Usuario')
+                    ->wrap()
+                    ->searchable()
+                    ->limit(200)
+                    ->html(),
+                TextColumn::make('responseAI')
+                    ->label('Respuesta AI')
+                    ->wrap()
+                    ->searchable()
+                    ->html()
+                    ->limit(200)
+                    ->grow(),
+                TextColumn::make('fechaAnswerUser')
+                    ->label('Fecha Mensaje')
                     ->dateTime('d/m/Y H:i:s')
                     ->sortable()
                     ->searchable(),
-                TextColumn::make('message.content')
-                    ->label('Contenido')
-                    ->html()
-                    ->wrap()
-                    ->searchable()
-                    ->formatStateUsing(fn ($state) => nl2br(htmlspecialchars($state)))
-                    ->limit(200)
-                    ->grow(),
-                TextColumn::make('session_id')
-                    ->label('Sesión')
+                TextColumn::make('fechaResponseAI')
+                    ->label('Fecha Respuesta')
+                    ->dateTime('d/m/Y H:i:s')
                     ->sortable()
-                    ->searchable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('message.tool_calls')
-                    ->label('Llamadas a Herramientas')
-                    ->toggleable(isToggledHiddenByDefault: true)
-                    ->formatStateUsing(fn ($state) => $state ? json_encode($state, JSON_PRETTY_PRINT) : ''),
-                TextColumn::make('message.additional_kwargs')
-                    ->label('Args Adicionales')
-                    ->toggleable(isToggledHiddenByDefault: true)
-                    ->formatStateUsing(fn ($state) => $state ? json_encode($state, JSON_PRETTY_PRINT) : ''),
-                TextColumn::make('message.response_metadata')
-                    ->label('Metadata de Respuesta')
-                    ->toggleable(isToggledHiddenByDefault: true)
-                    ->formatStateUsing(fn ($state) => $state ? json_encode($state, JSON_PRETTY_PRINT) : '')
+                    ->searchable(),
             ])
-            ->defaultSort('create_at', 'desc')
+            ->defaultSort('fechaAnswerUser', 'desc')
             ->groups([
-                Tables\Grouping\Group::make('session_id')
-                    ->label('Sesión')
-                    ->collapsible(true, true), // El segundo parámetro indica que está colapsado por defecto
-
+                Tables\Grouping\Group::make('numero')
+                    ->label('Número')
+                    ->collapsible()
             ])
-            ->defaultGroup('session_id')
+            ->defaultGroup('numero')
             ->filters([
                 //
             ])
             ->actions([
+                Tables\Actions\ViewAction::make()
+                    ->form([
+                        TextInput::make('numero')
+                            ->label('Número'),
+                        Textarea::make('answerUser')
+                            ->label('Mensaje Usuario')
+                            ->rows(3)
+                            ->columnSpanFull(),
+                        Textarea::make('responseAI')
+                            ->label('Respuesta AI')
+                            ->rows(5)
+                            ->columnSpanFull(),
+                        DateTimePicker::make('fechaAnswerUser')
+                            ->label('Fecha Mensaje Usuario'),
+                        DateTimePicker::make('fechaResponseAI')
+                            ->label('Fecha Respuesta AI'),
+                    ]),
             ])
             ->bulkActions([
-               
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                ]),
             ])
             ->poll('5s');
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
     }
 
     public static function getPages(): array
     {
         return [
             'index' => Pages\ListN8nMessages::route('/'),
-            'edit' => Pages\EditN8nMessage::route('/{record}/edit'),
         ];
     }
 }

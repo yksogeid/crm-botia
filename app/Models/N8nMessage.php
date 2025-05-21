@@ -6,17 +6,21 @@ use Illuminate\Database\Eloquent\Model;
 
 class N8nMessage extends Model
 {
-    protected $table = 'n8n';
+    protected $table = 'history_conversations';
+    protected $connection = 'mysql';
     
-    protected $casts = [
-        'message' => 'array',
-    ];
+    public $timestamps = false;
 
     protected $fillable = [
-        'session_id',
-        'message',
-        'created_at',
+        'answerUser',
+        'responseAI',
+        'fechaAnswerUser',
+        'fechaResponseAI',
+        'numero'
     ];
 
-    public $timestamps = true;
+    protected $casts = [
+        'fechaAnswerUser' => 'datetime',
+        'fechaResponseAI' => 'datetime'
+    ];
 }
