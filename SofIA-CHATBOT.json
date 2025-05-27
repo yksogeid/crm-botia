@@ -1,0 +1,1094 @@
+{
+  "name": "SofIA - ChatBot",
+  "nodes": [
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.messages[0].audio.voice }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "false",
+                      "singleValue": true
+                    },
+                    "id": "0d3dcdb9-cc8a-4f9b-ae45-a23a83b67582"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Texto"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "1c85fa60-e7d8-46d5-9be7-e4deb2a639a0",
+                    "leftValue": "={{ $json.messages[0].audio.voice }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Audio"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -2020,
+        160
+      ],
+      "id": "2c6dbd2a-0adb-4a8a-b568-67eefe1c9ee5",
+      "name": "Switch2"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "whatsAppApi",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1880,
+        420
+      ],
+      "id": "08e0076e-ed16-4c73-8063-7ae67f591798",
+      "name": "Descarga Audio2",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "NEZ9H7fNxYtuErcd",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/audio/transcriptions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "whisper-large-v3"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1720,
+        420
+      ],
+      "id": "745e8e6b-11b8-49fc-be87-f7934ffedd11",
+      "name": "Audio a Texto GROQ2"
+    },
+    {
+      "parameters": {
+        "resource": "media",
+        "operation": "mediaUrlGet",
+        "mediaGetId": "={{ $json.messages[0].audio.id }}",
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        -2040,
+        420
+      ],
+      "id": "af9215cd-772b-4692-b09e-58c7549075af",
+      "name": "Recibe audio2",
+      "webhookId": "4413d02a-ff9e-4521-8916-337c860ef4d9",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "NEZ9H7fNxYtuErcd",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "messages"
+        ]
+      },
+      "type": "n8n-nodes-base.whatsAppTrigger",
+      "typeVersion": 1,
+      "position": [
+        -2280,
+        160
+      ],
+      "id": "0e415e53-0559-4ddf-8421-1cab8e59f9cf",
+      "name": "WhatsApp Trigger1",
+      "webhookId": "8316413c-3da3-4ef3-a204-e4404b9d96c1",
+      "credentials": {
+        "whatsAppTriggerApi": {
+          "id": "sx9FsnSsaTcdhLG4",
+          "name": "WhatsApp OAuth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "formatDate",
+        "date": "={{ new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString().replace('T', ' ').slice(0, 19) }}\n",
+        "format": "custom",
+        "customFormat": "yyyy-MM-dd hh:mm:ss",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [
+        -1280,
+        240
+      ],
+      "id": "d82cebae-5805-4504-8877-c93275eef776",
+      "name": "Date & Time"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5b9a4c9d-71e8-4b0d-869c-c884d48b4fd0",
+              "name": "text",
+              "value": "={{ $('WhatsApp Trigger1').item.json.messages[0].text.body }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1720,
+        140
+      ],
+      "id": "10c213cc-7bd7-4383-8350-911609887886",
+      "name": "cambiaNombreVariable"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Mensaje del usuario: {{ $('setFINAL').item.json.pregunta }}\nEl numero de telefono del usuario es:{{ $('WhatsApp Trigger1').item.json.messages[0].from }}\nLa fecha de hoy es:{{ $json.formattedDate }}\n\n\n\n",
+        "options": {
+          "systemMessage": "=# Rol  \nEres el asistente de la dependencia de admisiones y registros de la Universidad Simón Bolívar, sede Cúcuta.\n\n# Tarea  \nTu función principal es asistir a los usuarios en consultas relacionadas con información sobre carreras, procedimientos y servicios académicos.\n\n# Especificaciones  \n\n## 1. Identificación del usuario \n- En cada primer mensaje, utiliza la función `validar_nombre` para verificar si el nombre proporcionado existe en la base de datos.\n- Estructura de respuesta de la función: `{ existe: boolean, primera_vez: boolean }`\n\n## 2. Manejo del mensaje de bienvenida  \n- Si el usuario **no existe en la base de datos** (validar_nombre.existe = false), envía:\n  ```\n👋 ¡Hola, qué gusto tenerte por aquí!\nSoy SofIA, tu asistente virtual 🤖✨ y estoy encantada de ayudarte en lo que necesites.\nPara brindarte una atención más personalizada, ¿podrías compartirme tu nombre y apellido? 📝\n¡Estoy lista para acompañarte en todo tu proceso! 💪😊\n  ```\n\n- Si el usuario **ya existe en la base de datos** (validar_nombre.existe = true), y es su **primera interacción** (validar_nombre.primera_vez = true):\n  ```\n👋 ¡Hola! {nombre y apellido}, Soy SofIA tu asistente virtual de Admisiones.\nEstoy aquí para ayudarte con todo lo relacionado a admisiones, carreras y más.\n  ```\n\n- No repetir el mensaje de bienvenida en respuestas posteriores.\n\n## 3. Registro de usuario  \n- Utiliza la función `crear_usuario(nombre_completo)` ÚNICAMENTE cuando:\n  - El usuario haya proporcionado su nombre y apellido\n  - La validación indique que no existe (validar_nombre.existe = false)\n- Estructura de respuesta de la función: `{ success: boolean, user_id: string }`\n\n## 4. Consulta de precios de carreras\n- Utiliza la función `precio_carrera(nombre_carrera)` para consultar el precio\n- Estructura de respuesta: `{ existe: boolean, precio: int}`\n- los precios son en pesos colombianos, evita el COP ejemplo: 4.220.200 pesos\n- Si la carrera no está registrada (precio_carrera.existe = false):\n  ```\n  Disculpa {nombre y apellido}, no cuento con información acerca de esa carrera.\n  ```\n## 5. Información adicional sobre carreras\n- Utiliza la función contextos(contexto) para obtener información específica sobre carreras universitarias.\n- Analiza cada consulta y clasifícala automáticamente según su contenido, determinando la categoría más adecuada antes de usar la herramienta:\n  - Para consultas sobre proceso de inscripción o admisión: contextos(\"proceso de inscripción\")\n  - Para consultas sobre qué programas académicos existen: contextos(\"carreras disponibles\")\n\n## 6.Derivación a Áreas Específicas por Teléfono\n- Analiza cada consulta y clasifícala automáticamente en una de estas categorías:\n  - \"extension\": consultas sobre cursos cortos, diplomados, formación continua, títulos extranjeros o actividades culturales\n  - \"posgrados\": consultas sobre especializaciones, maestrías, doctorados o admisión a estudios avanzados\n  - \"matriculas\": consultas sobre procesos de matrícula, pagos, adiciones o cancelaciones de asignaturas\n  - \"derecho\": consultas sobre la facultad de Derecho, clínica jurídica o consultorio jurídico\n  - \"financiamiento estudiantil\": consultas sobre becas, préstamos, créditos educativos o ayudas económicas\n- \"barranquilla\": consultas sobre la sede barranquilla.\n- \"registro y control academico\": consultas sobre certificados, historial académico, documentos oficiales o homologaciones\n  - \"lenguajes extranjeras\": consultas sobre cursos de idiomas, certificaciones o requisitos de lengua extranjera\n- Cuando identifiques el área correspondiente, ejecuta area(\"nombre_del_area\") para obtener el número de contacto.\n- Una vez tenga el numero de contacto devuelve la siguiente respuesta:\n ```\n👋 ¡Hola! {nombre}, el area encargada de tu pregunta sobre {pregunta del usuario} es {area} debes contactarlos al whatsapp al numero {numero de contacto} ellos te ayudaran\n  ```\n\n## 7. Transferencia a agente humano\n- Si no puedes responder satisfactoriamente a una consulta o el cliente requiere asistencia especializada, primero comunica al usuario: \"🙋‍♂️ ¡Hola! Gracias por escribirnos.\nDisculpa, en este momento no tengo la información exacta que necesitas.\n📞 Pero no te preocupes, puedes comunicarte directamente al +573143480005, donde con gusto te orientarán en todo lo que necesites.\n🕐 Están disponibles y listos para ayudarte. ¡No dudes en escribirles!\"\n\n# Instrucciones técnicas\n- Las funciones mencionadas son nodos de n8n que se invocarán automáticamente en el flujo de trabajo.\n- La variable `{{ $json.formattedDate }}` es la hora actual.\n- No incluyas reflexiones internas, mensajes de depuración o notas técnicas en las respuestas al usuario.\n- Responde siempre en español y de manera concisa.\n- Personaliza las respuestas con el nombre del usuario cuando esté disponible.\n- Cuando identifiques el área correspondiente, ejecuta area(\"nombre_del_area\") para obtener el número de contacto.\n\n# IMPORTANTE  \n- Limítate a responder solo si tienes herramientas disponibles para consultar.\n- Las respuestas deben ser claras, ordenadas y orientadas a la acción inmediata.  \n- No utilices asteriscos ni ningún formato de texto como negritas o símbolos especiales."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -1020,
+        260
+      ],
+      "id": "5a94a724-2279-48b5-b6fc-2464f92cab9d",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "model": "openai/o4-mini",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -1140,
+        500
+      ],
+      "id": "6d98a0a9-edca-4919-ae26-0d0a05e9f944",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "sLPAgBvkYjXpKMjt",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "table": {
+          "__rl": true,
+          "value": "usuarios",
+          "mode": "list",
+          "cachedResultName": "usuarios"
+        },
+        "limit": 1,
+        "where": {
+          "values": [
+            {
+              "column": "telefono",
+              "value": "={{ $('Switch2').item.json.messages[0].from }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySqlTool",
+      "typeVersion": 2.4,
+      "position": [
+        -880,
+        760
+      ],
+      "id": "4d762335-61b0-495a-b109-22728a1ff09f",
+      "name": "validar_nombre",
+      "credentials": {
+        "mySql": {
+          "id": "sEr9GD7BQSUQDHWV",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "table": {
+          "__rl": true,
+          "value": "usuarios",
+          "mode": "list",
+          "cachedResultName": "usuarios"
+        },
+        "dataMode": "defineBelow",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "nombre",
+              "value": "={{ $fromAI(\"Nombre\",\"Nombre y apellido del usuario\") }}"
+            },
+            {
+              "column": "telefono",
+              "value": "={{ $('Switch2').item.json.messages[0].from }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySqlTool",
+      "typeVersion": 2.4,
+      "position": [
+        -700,
+        740
+      ],
+      "id": "cf720ad0-862b-415f-a5c4-4de47cb05c01",
+      "name": "crear_usuario",
+      "credentials": {
+        "mySql": {
+          "id": "sEr9GD7BQSUQDHWV",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "table": {
+          "__rl": true,
+          "value": "carrera_price",
+          "mode": "list",
+          "cachedResultName": "carrera_price"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "carrera",
+              "value": "={{ $fromAI(\"nombre_carrera\",\"Precio de la carrera a consultar\") }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySqlTool",
+      "typeVersion": 2.4,
+      "position": [
+        -580,
+        660
+      ],
+      "id": "ebea239d-a09c-4613-9b9e-1fce665a9e0e",
+      "name": "precio_carrera",
+      "credentials": {
+        "mySql": {
+          "id": "sEr9GD7BQSUQDHWV",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('WhatsApp Trigger1').item.json.contacts[0].wa_id }}",
+        "tableName": "n8n",
+        "contextWindowLength": 50
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        -1080,
+        700
+      ],
+      "id": "45a361df-9afe-4a42-a5bc-ac902783f28c",
+      "name": "Postgres Chat Memory",
+      "notesInFlow": false,
+      "credentials": {
+        "postgres": {
+          "id": "gTuoj7Y4ub52JBg5",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "table": {
+          "__rl": true,
+          "value": "contextos",
+          "mode": "list",
+          "cachedResultName": "contextos"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "nombre",
+              "value": "={{ $fromAI(\"contexto\",\"Contexto de la pregunta\") }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySqlTool",
+      "typeVersion": 2.4,
+      "position": [
+        -380,
+        760
+      ],
+      "id": "06e7e3ca-8ffb-440e-b09b-ffeb33c12f94",
+      "name": "contextos",
+      "credentials": {
+        "mySql": {
+          "id": "sEr9GD7BQSUQDHWV",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5b9a4c9d-71e8-4b0d-869c-c884d48b4fd0",
+              "name": "pregunta",
+              "value": "={{$json.text}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1540,
+        260
+      ],
+      "id": "fa54eda9-d163-4461-9b68-b3373058cf0f",
+      "name": "setFINAL"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "table": {
+          "__rl": true,
+          "value": "numeros",
+          "mode": "list",
+          "cachedResultName": "numeros"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "area",
+              "value": "={{ $fromAI(\"nombre_del_area\",\"area\") }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySqlTool",
+      "typeVersion": 2.4,
+      "position": [
+        -780,
+        860
+      ],
+      "id": "6457818c-02c8-455a-a98f-fa9852ff16ea",
+      "name": "area",
+      "credentials": {
+        "mySql": {
+          "id": "sEr9GD7BQSUQDHWV",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('WhatsApp Trigger1').item.json.messages[0].type }}",
+                    "rightValue": "audio",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "e025717c-129f-49b2-80ab-848283e5d8a2"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "e1076f83-639d-4f59-b326-bf0ffe1408b4",
+                    "leftValue": "={{ $('WhatsApp Trigger1').item.json.messages[0].type }}",
+                    "rightValue": "text",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -300,
+        60
+      ],
+      "id": "d67589ef-b238-4142-bd67-a65a0d6faa32",
+      "name": "Voz o texto"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Convierte números con puntos (como 1.000.000) a palabras\nfunction numeroAPalabras(num) {\n    const unidades = ['cero', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve'];\n    const decenas = ['diez', 'once', 'doce', 'trece', 'catorce', 'quince', 'dieciséis', 'diecisiete', 'dieciocho', 'diecinueve'];\n    const decenas2 = ['', '', 'veinte', 'treinta', 'cuarenta', 'cincuenta', 'sesenta', 'setenta', 'ochenta', 'noventa'];\n    const centenas = ['', 'ciento', 'doscientos', 'trescientos', 'cuatrocientos', 'quinientos', 'seiscientos', 'setecientos', 'ochocientos', 'novecientos'];\n\n    function numeroALetras(numero) {\n        if (numero === 0) return 'cero';\n\n        let palabras = '';\n\n        // Millones\n        if (numero >= 1000000) {\n            const millones = Math.floor(numero / 1000000);\n            numero %= 1000000;\n            palabras += (millones === 1) ? 'un millón' : numeroALetras(millones) + ' millones';\n            if (numero > 0) palabras += ' ';\n        }\n\n        // Miles\n        if (numero >= 1000) {\n            const miles = Math.floor(numero / 1000);\n            numero %= 1000;\n            palabras += (miles === 1) ? 'mil' : numeroALetras(miles) + ' mil';\n            if (numero > 0) palabras += ' ';\n        }\n\n        // Centenas\n        if (numero >= 100) {\n            const cen = Math.floor(numero / 100);\n            numero %= 100;\n            palabras += (cen === 1 && numero === 0) ? 'cien' : centenas[cen];\n            if (numero > 0) palabras += ' ';\n        }\n\n        // Decenas y unidades\n        if (numero > 0) {\n            if (numero < 10) {\n                palabras += unidades[numero];\n            } else if (numero < 20) {\n                palabras += decenas[numero - 10];\n            } else {\n                const dec = Math.floor(numero / 10);\n                const uni = numero % 10;\n                palabras += decenas2[dec];\n                if (uni > 0) palabras += ' y ' + unidades[uni];\n            }\n        }\n\n        return palabras.trim();\n    }\n\n    return numeroALetras(num);\n}\n\n// Procesa los ítems\nreturn items.map(item => {\n    const texto = $input.first().json.output;\n\n    // Verifica si hay algún número con puntos\n    if (/\\d/.test(texto)) {\n        const regex = /\\b\\d{1,3}(?:\\.\\d{3})+\\b/g;\n        const reemplazado = texto.replace(regex, match => {\n            const numero = parseInt(match.replace(/\\./g, ''), 10);\n            return numeroAPalabras(numero);\n        });\n\n        return {\n            json: {\n                original: texto,\n                convertido: reemplazado,\n            }\n        };\n    } else {\n        return {\n            json: {\n                convertido: texto,\n            }\n        };\n    }\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "id": "f7070006-1f6e-4346-8f00-c7f3ed150c3e",
+      "name": "deletrea numeros"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "550257934840972",
+        "recipientPhoneNumber": "={{ $('Switch2').item.json.contacts[0].wa_id }}",
+        "textBody": "={{ $('AI Agent1').item.json.output }}",
+        "additionalFields": {},
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        320,
+        320
+      ],
+      "id": "f9c62657-de0a-411f-aa9d-c15b50972eee",
+      "name": "responseText",
+      "webhookId": "1eb2c13c-cc08-4d62-ad23-4a2dbbc3fed7",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "NEZ9H7fNxYtuErcd",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "550257934840972",
+        "recipientPhoneNumber": "={{ $('Switch2').item.json.messages[0].from }}",
+        "messageType": "audio",
+        "mediaPath": "useMediaId",
+        "mediaId": "={{ $json.id }}",
+        "additionalFields": {},
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        860,
+        820
+      ],
+      "id": "c4aa885c-075f-4f2b-bc30-70d39808b7c4",
+      "name": "responseAudio",
+      "webhookId": "51d78ba6-ed81-4cfe-9395-16474ddec87b",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "NEZ9H7fNxYtuErcd",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "media",
+        "phoneNumberId": "550257934840972",
+        "mediaPropertyName": "mp3",
+        "additionalFields": {},
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        860,
+        600
+      ],
+      "id": "4c6cbd37-1df5-4ebe-96c4-e223fa31e0b5",
+      "name": "upCloud",
+      "webhookId": "7a1ba53c-6577-473b-ae81-4f9bd0a69af0",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "NEZ9H7fNxYtuErcd",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst binary = items[0].binary.data;\n\n// Extraer el contenido base64 del archivo\nconst base64Data = binary.data || binary;\n\n// Convertir a Buffer\nconst buffer = Buffer.from(base64Data, 'base64');\n\n// Devolverlo como archivo mp3 binario\nreturn [\n  {\n    binary: {\n      mp3: {\n        data: buffer.toString('base64'),\n        mimeType: 'audio/mpeg',\n        fileName: 'audio.mp3'\n      }\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        840,
+        360
+      ],
+      "id": "9f6786e5-3970-42ab-86d7-004b2aecffcf",
+      "name": "convertMP3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.elevenlabs.io/v1/text-to-speech/86V9x9hrQds83qf7zaGn",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "output_format",
+              "value": "mp3_44100_128"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "xi-api-key",
+              "value": "sk_6afc5eee0cce9c7b7a2ee7c19fb4962cd09de3c05a7e3fd8"
+            },
+            {
+              "name": "api-key",
+              "value": "OMpqVWAH.UC80wyXTtPwhDgAUdCTx6"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "text",
+              "value": "= {{ $json.convertido }}"
+            },
+            {
+              "name": "model_id",
+              "value": "eleven_multilingual_v2"
+            }
+          ]
+        },
+        "options": {
+          "redirect": {
+            "redirect": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        820,
+        120
+      ],
+      "id": "fe12a424-fba1-4ec0-be81-488499e3ac06",
+      "name": "TTS"
+    },
+    {
+      "parameters": {
+        "table": {
+          "__rl": true,
+          "value": "history_conversations",
+          "mode": "list",
+          "cachedResultName": "history_conversations"
+        },
+        "dataMode": "defineBelow",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "numero",
+              "value": "={{ $fromAI(\"numeroTelefono\", \"numero de telefono del usuario\") }}"
+            },
+            {
+              "column": "answerUser",
+              "value": "={{ $fromAI(\"preguntaUser\",\"pregunta del usuario\") }}"
+            },
+            {
+              "column": "responseAI",
+              "value": "={{ $fromAI(\"respuestaIA\", \"tu respuesta\") }}"
+            },
+            {
+              "column": "fechaAnswerUser",
+              "value": "={{ $fromAI(\"fechaUser\", \"fecha de pregunta del usuario en formato AAAA-MM-DD HH:MM:SS\") }}\n"
+            },
+            {
+              "column": "fechaResponseAI",
+              "value": "={{ $fromAI(\"fechaRespuesta\",\"fecha de respuesta tuya en formato AAAA-MM-DD HH:MM:SS\") }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySqlTool",
+      "typeVersion": 2.4,
+      "position": [
+        -1000,
+        840
+      ],
+      "id": "e0f5daf7-262a-4a6a-afa9-a665ed8bcd6b",
+      "name": "insertarConver",
+      "credentials": {
+        "mySql": {
+          "id": "sEr9GD7BQSUQDHWV",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "table": {
+          "__rl": true,
+          "value": "history_conversations",
+          "mode": "list",
+          "cachedResultName": "history_conversations"
+        },
+        "dataMode": "defineBelow",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "answerUser",
+              "value": "={{ $('WhatsApp Trigger1').item.json.messages[0].text.body }}"
+            },
+            {
+              "column": "responseAI",
+              "value": "={{ $json.output }}"
+            },
+            {
+              "column": "fechaAnswerUser",
+              "value": "={{ $('Date & Time').item.json.formattedDate }}"
+            },
+            {
+              "column": "fechaResponseAI",
+              "value": "={{ new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString().replace('T', ' ').slice(0, 19) }}"
+            },
+            {
+              "column": "numero",
+              "value": "={{ $('Switch2').item.json.messages[0].from }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [
+        -540,
+        260
+      ],
+      "id": "5277c892-3909-4261-a911-d272b1afe1d5",
+      "name": "MySQL",
+      "credentials": {
+        "mySql": {
+          "id": "sEr9GD7BQSUQDHWV",
+          "name": "MySQL account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Switch2": {
+      "main": [
+        [
+          {
+            "node": "cambiaNombreVariable",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Recibe audio2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Descarga Audio2": {
+      "main": [
+        [
+          {
+            "node": "Audio a Texto GROQ2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Audio a Texto GROQ2": {
+      "main": [
+        [
+          {
+            "node": "setFINAL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recibe audio2": {
+      "main": [
+        [
+          {
+            "node": "Descarga Audio2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Switch2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Date & Time": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "cambiaNombreVariable": {
+      "main": [
+        [
+          {
+            "node": "setFINAL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "validar_nombre": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "crear_usuario": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "MySQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "precio_carrera": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "contextos": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "setFINAL": {
+      "main": [
+        [
+          {
+            "node": "Date & Time",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "area": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Voz o texto": {
+      "main": [
+        [
+          {
+            "node": "deletrea numeros",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "responseText",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "deletrea numeros": {
+      "main": [
+        [
+          {
+            "node": "TTS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "upCloud": {
+      "main": [
+        [
+          {
+            "node": "responseAudio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "convertMP3": {
+      "main": [
+        [
+          {
+            "node": "upCloud",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TTS": {
+      "main": [
+        [
+          {
+            "node": "convertMP3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "insertarConver": {
+      "ai_tool": [
+        []
+      ]
+    },
+    "MySQL": {
+      "main": [
+        [
+          {
+            "node": "Voz o texto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "116d00ef-82b0-435f-bb90-59b6a8bd5ccc",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "af6b6153f1b3bc475ab09ed854af9f2fbff0c8f5c6048d053c89d5430e2d4946"
+  },
+  "id": "zW7nC3EgP53NCyCC",
+  "tags": [
+    {
+      "createdAt": "2025-05-20T14:34:34.172Z",
+      "updatedAt": "2025-05-20T14:34:34.172Z",
+      "id": "01gwICggO1ou1yFN",
+      "name": "PostgreSQL"
+    },
+    {
+      "createdAt": "2025-05-20T14:34:34.164Z",
+      "updatedAt": "2025-05-20T14:34:34.164Z",
+      "id": "FoItAHNd0TVYFCdA",
+      "name": "Whatsapp"
+    },
+    {
+      "createdAt": "2025-05-20T14:34:34.168Z",
+      "updatedAt": "2025-05-20T14:34:34.168Z",
+      "id": "Jl8oSmbZLWqFqClZ",
+      "name": "MySQL"
+    }
+  ]
+}
